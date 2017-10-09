@@ -22,12 +22,12 @@ complex(kind=kind_cplx), dimension(:), allocatable, target :: complex_array
 type(vector) :: my_vector
 character(len=8), parameter :: demo_string='A string'
 character(len=:), allocatable, target :: char_array(:)
-!integer, parameter :: n_nodes=200000
 integer, parameter :: max_n_nodes=100000
 integer, parameter :: n_items_to_print=10
 real(kind=dp) :: t_start, t_end, rand_num, rand_num2, rand_num3, &
-                 rand_float, rand_float2
-!
+                 rand_float, rand_float2, time_link_list, time_int_array, &
+                 time_logical_array, time_real_array, time_cplx_array, &
+                 time_char_array
 integer, dimension(:), allocatable :: rand_int_array
 logical, dimension(:), allocatable :: rand_logical_array
 real(kind=dp), dimension(:), allocatable :: rand_float_array
@@ -72,7 +72,6 @@ do i=1, max_n_nodes
     enddo
     rand_char_array(i)(:) = rand_str(:)
     deallocate(rand_str)
-
 enddo
 
 ! Choose a random number of elements
