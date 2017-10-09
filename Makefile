@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # ======================================================================
-# Adapted from: 
+# Makefile adapted from:
 #     Makefile-Fortran: A Makefile for a simple Fortran project
 #     Copyright (C) 2009 Davide Cesari, dcesari <at> arpa.emr.it
 #     Available at 
@@ -49,8 +49,6 @@ endif
 # Aliases
 current_dir = $(shell pwd)
 main_src_dir = $(current_dir)
-doc_dir = $(current_dir)/doc
-source_doc_dir = $(doc_dir)/source_code
 general_include_dir = $(main_src_dir)/include
 
 # Folders containing needed sources
@@ -62,7 +60,6 @@ FCFLAGS += -I$(general_include_dir)
 MAIN_SRC = upl_mod_demo.f90 
 MAIN_SRC_OBJ = $(patsubst %.f90, %.o, $(MAIN_SRC))
 MAIN_EXE = $(patsubst %.f90, %.x, $(MAIN_SRC))
-SOURCE_DOC_SYMLNK = $(source_doc_dir)/html/bandup_source_doc.html
 # First rule: "make" will build this rule if no target is specified
 all: $(MAIN_EXE)
 
@@ -72,7 +69,6 @@ OBJ := storage_size_wrappers_mod.o aux_constants_and_types_mod.o \
 
 # Rules to make the main targets individually
 main: $(MAIN_EXE)
-sourcedoc: $(SOURCE_DOC_SYMLNK)
 # Rules for dependencies
 storage_size_wrappers_mod.o: aux_constants_and_types_mod.o
 unlimited_polymorphic_lists_mod.o: generic_array_append.inc \
@@ -89,24 +85,14 @@ $(MAIN_EXE): $(MAIN_SRC_OBJ) $(OBJ)
 %.o: %.f90
 	$(FC) $(FCFLAGS) -$(FPP) $(FPPFLAGS) -c $<
 
-$(SOURCE_DOC_SYMLNK): | doxydoc
-	ln -s $(source_doc_dir)/html/index.html $@
-
 # Utility targets
-.PHONY: all doxydoc clean veryclean print
+.PHONY: all clean veryclean print
 
-doxydoc:
-	export BANDUPDIR=$(BandUP_root_dir);\
-	export BANDUP_GIT_INFO=$(GIT_TAG);\
-	export DOXIGENOUTDIR=$(source_doc_dir);\
-	mkdir -p $(source_doc_dir);\
-	doxygen
 clean:
 	rm -f *.o *.mod *.MOD
 	find . -name "*.pyc" -type f -delete
 	find . -name "__pycache__" -type d -delete
 veryclean: clean
 	rm -f *~ $(MAIN_EXE)
-	rm -rf $(doc_dir)
 print-%:
 	@echo '$*=$($*)'
