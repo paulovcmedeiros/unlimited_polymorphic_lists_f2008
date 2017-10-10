@@ -17,12 +17,13 @@ class(doubly_linked_list_node), pointer :: ptr_node=>null()
 character(:), pointer :: char_ptr
 integer :: i, j, n_nodes
 integer, dimension(:), allocatable, target :: int_array
+logical, dimension(:), allocatable, target :: logical_array
 real(kind=dp), dimension(:), allocatable, target :: real_array
 complex(kind=kind_cplx), dimension(:), allocatable, target :: complex_array
 type(vector) :: my_vector
 character(len=8), parameter :: demo_string='A string'
 character(len=:), allocatable, target :: char_array(:)
-integer, parameter :: max_n_nodes=100000
+integer, parameter :: max_n_nodes=50000
 integer, parameter :: n_items_to_print=10
 real(kind=dp) :: t_start, t_end, rand_num, rand_num2, rand_num3, &
                  rand_float, rand_float2, time_link_list, time_int_array, &
@@ -36,6 +37,12 @@ type(vector), dimension(:), allocatable :: rand_vector_array
 character(len=64), dimension(:), allocatable :: rand_char_array
 character(len=:), allocatable :: rand_str
 
+print "(A,I0)", "Max number of elements to be appended: ", max_n_nodes
+print *, ''
+
+print "(A,I0,A)", "Creating random arrays to provide up to ", &
+    max_n_nodes, " elements..."
+print *, ''
 ! Create one max_n_nodes-long random array for each type
 allocate(rand_int_array(1:max_n_nodes))
 allocate(rand_logical_array(1:max_n_nodes))
@@ -58,6 +65,12 @@ do i=1, max_n_nodes
         rand_float2 = -1.0_dp * rand_float2
     endif
 
+    if(rand_num<0.5)then
+        rand_logical_array(i) = .TRUE.
+    else
+        rand_logical_array(i) = .FALSE.
+    endif
+
     rand_int_array(i) = nint(rand_float)
     rand_float_array(i) = rand_float
     rand_cplx_array(i) = rand_float + imag_i*rand_float2
@@ -73,26 +86,22 @@ do i=1, max_n_nodes
     rand_char_array(i)(:) = rand_str(:)
     deallocate(rand_str)
 enddo
+print "(A)", "Done creating random arrays."
+print *, ''
 
-! Choose a random number of elements
-call random_number(rand_num)
-n_nodes = nint(max_n_nodes * rand_num)
-
+print "(A)", "Appending to llist/arrays (final number of elements unknown)..."
+! Populate list with items of different types chosen at random
 time_link_list = 0.0_dp
 time_int_array = 0.0_dp
 time_logical_array = 0.0_dp
 time_real_array = 0.0_dp
 time_cplx_array = 0.0_dp
 time_char_array = 0.0_dp
-
-! Populate list with items of different types chosen at random
-print "(A,I0,A)", "Number of elements in the list: ",n_nodes," elements"
-print *, ''
 ! Building lists
-call cpu_time(t_start)
-do i=1, n_nodes
+do i=1, max_n_nodes
     ! Appending to linked list
     call random_number(rand_num)
+    call cpu_time(t_start)
     if(rand_num<0.2)then
         call list%append(rand_int_array(i))
     else if(rand_num>=0.2 .and. rand_num<0.4)then
@@ -104,74 +113,83 @@ do i=1, n_nodes
     else
         call list%append(rand_vector_array(i))
     endif
-    ! Appending to regular arrays
+    call cpu_time(t_end)
+    time_link_list = time_link_list + (t_end - t_start)
+
+    ! Appending to regular arrays of intrinsic types
+    ! This is to emulate a situation where the final
+    ! length of the arrays is unknown. 
+    ! Linked lists is certainly not the way to go otherwise.
+    ! Integer
+    call cpu_time(t_start)
+    call append_to_array(int_array, rand_int_array(i))
+    call cpu_time(t_end)
+    time_int_array = time_int_array + (t_end - t_start)
+    ! Real
+    call cpu_time(t_start)
+    call append_to_array(real_array, rand_float_array(i))
+    call cpu_time(t_end)
+    time_real_array = time_real_array + (t_end - t_start)
+    ! Complex
+    call cpu_time(t_start)
+    call append_to_array(complex_array, rand_cplx_array(i))
+    call cpu_time(t_end)
+    time_cplx_array = time_cplx_array + (t_end - t_start)
+    ! Logical
+    call cpu_time(t_start)
+    call append_to_array(logical_array, rand_logical_array(i))
+    call cpu_time(t_end)
+    time_logical_array = time_logical_array + (t_end - t_start)
+    ! character
+    call cpu_time(t_start)
+    call append_to_array(char_array, rand_char_array(i))
+    call cpu_time(t_end)
+    time_char_array = time_char_array + (t_end - t_start)
+
     ! Deciding whether to stop or not
     call random_number(rand_num)
+    if(rand_num<=0.3)then
+        n_nodes = i
+    endif
 enddo
-
-print "(A,I0,A)",&
-    "Printing the first ", n_items_to_print," items of the list: "
-do i=1, min(n_items_to_print, list%len)
-    print *, list%item(i) ! TEST
-enddo
+print "(A,I0)", "Done appending to llist/arrays. Number of elements: ", n_nodes
 print *, ''
 
-call cpu_time(t_end)
+! Reporting append times
+! Linked list
 print "(A,f0.3,A)",&
     "Time spent appending to linked list (LL) holding arbitrary types: ", &
-    t_end-t_start,"s"
-
-! Creating arrays of intrinsic types
-! Appending is done on purpose, to emulate a situation where the final
-! length of the arrays will be. Of course, if the final size is initially
-! known, then lined lists is not the way to go.
+    time_link_list,"s"
 ! Integer
-call cpu_time(t_start)
-do i=1, n_nodes
-    call append_to_array(int_array, i)
-enddo
-call cpu_time(t_end)
 print "(A,f0.3,A)",&
     "Time spent appending to integer array with same size as the LL: ", &
-    t_end-t_start,"s"
+    time_int_array,"s"
 ! Real
-call cpu_time(t_start)
-do i=1, n_nodes
-    call append_to_array(real_array, real(i, kind=dp))
-enddo
-call cpu_time(t_end)
 print "(A,f0.3,A)",&
     "Time spent appending to real array with same size as the LL: ", &
-    t_end-t_start,"s"
+    time_real_array,"s"
 ! Complex
-call cpu_time(t_start)
-do i=1, n_nodes
-    call append_to_array(complex_array, cmplx(i, kind=kind_cplx))
-enddo
-call cpu_time(t_end)
 print "(A,f0.3,A)",&
     "Time spent appending to complex array with same size as the LL: ", &
-    t_end-t_start,"s"
+    time_cplx_array,"s"
 ! Character
-if(n_nodes>50000)then
-    print "(A)", "Not creating character array: Too many items."
-else
-    call cpu_time(t_start)
-    do i=1, n_nodes
-        call append_to_array(char_array, demo_string)
-    enddo
-    call cpu_time(t_end)
-    print "(A,f0.3,A)",&
-        "Time spent appending to character array with same size as the LL: ", &
-        t_end-t_start,"s"
-endif
+print "(A,f0.3,A)",&
+    "Time spent appending to character array with same size as the LL: ", &
+    time_char_array,"s"
+
 
 ! Copying elements into indexed list
 indexed_list%doubly_linked_list = list%copy()
-! Building index
+print *, ''
+print "(A)", "Building list index..."
 call cpu_time(t_start)
-call indexed_list%build_index()
+CALL indexed_list%build_index()
 call cpu_time(t_end)
+print "(A,f0.3,A)",&
+    "    * Done in ", &
+    t_end-t_start,"s"
+
+
 print *, '' 
 print "(A,f0.3,A)", "Storage size of regular list: ", &
     list%storage_size(), " MB"
@@ -179,11 +197,6 @@ print "(A,f0.3,A)", "Storage size of indexed list: ", &
     indexed_list%storage_size(), " MB"
 print "(A,f0.3,A)", "    * Storage size of index: ", &
     indexed_list%storage_size_of_index(), " MB"
-print "(A,f0.3,A)",&
-    "    * Time spent building index: ", &
-    t_end-t_start,"s"
-
-print *, '' 
 print "(A,f0.3,A)", "Storage size of integer array: ", &
     array_storage_size_in_MB(int_array)," MB"
 print "(A,f0.3,A)", "Storage size of real array: ", &
@@ -192,8 +205,11 @@ print "(A,f0.3,A)", "Storage size of complex array: ", &
     array_storage_size_in_MB(complex_array)," MB"
 print "(A,f0.3,A)", "Storage size of char array: ", &
     array_storage_size_in_MB(char_array)," MB"
+print "(A,f0.3,A)", "Storage size of logical array: ", &
+    array_storage_size_in_MB(logical_array)," MB"
 
 
+! Reporting traverse times
 print *, ''
 call cpu_time(t_start)
 do i=1, list%len
@@ -222,21 +238,18 @@ print "(A,f0.3,A)", &
     "Time to index-acess all items in complex array: ", &
     t_end-t_start,"s"
 
-if(allocated(char_array))then
-    call cpu_time(t_start)
-    do i=1, list%len
-        char_ptr => char_array(i)
-    enddo
-    call cpu_time(t_end)
-    print "(A,f0.3,A)", &
-        "Time to index-acess all items in character array: ", &
-        t_end-t_start,"s"
-endif
+call cpu_time(t_start)
+do i=1, list%len
+    char_ptr => char_array(i)
+enddo
+call cpu_time(t_end)
+print "(A,f0.3,A)", &
+    "Time to index-acess all items in character array: ", &
+    t_end-t_start,"s"
 
 call cpu_time(t_start)
 do i=1, list%len
     ptr_node => indexed_list%item(i)
-    !write(*,"(A,I0,1X,A,A)") "item=",i,"value=",list%item(i, "???")
 enddo
 call cpu_time(t_end)
 print "(A,f0.3,A)", &
@@ -251,5 +264,13 @@ call cpu_time(t_end)
 print "(A,f0.3,A)", &
     "Time to index-acess all items in regular list: ", &
     t_end-t_start,"s"
+
+! Testing output of elements from the unlimited polymorphic list
+print *, ''
+print "(A,I0,A)",&
+    "Printing the first ", n_items_to_print," items of the list: "
+do i=1, min(n_items_to_print, list%len)
+    print *, list%item(i) ! TEST
+enddo
 
 end program test_lists

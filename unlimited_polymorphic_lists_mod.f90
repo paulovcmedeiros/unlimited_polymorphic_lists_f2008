@@ -112,7 +112,8 @@ module unlimited_polymorphic_lists
     interface append_to_array
         ! The "append" routines will be used for tests and comparison
         module procedure append_to_int_array, append_to_real_array, &
-                         append_to_char_array, append_to_complex_array
+                         append_to_char_array, append_to_complex_array, &
+                         append_to_logical_array
     end interface append_to_array
 
 contains
@@ -146,6 +147,12 @@ contains
 #   include "generic_array_append.inc"
 #   undef SPECIFIC_ARRAY_APPEND_SUBROUTINE
 #   undef ARRAY_IS_CHAR
+    ! Logical
+#   define SPECIFIC_ARRAY_APPEND_SUBROUTINE append_to_logical_array
+#   define ARRAY_TYPE logical
+#   include "generic_array_append.inc"
+#   undef SPECIFIC_ARRAY_APPEND_SUBROUTINE
+#   undef ARRAY_TYPE
     ! End of subroutines to append to regular arrays
 
 
