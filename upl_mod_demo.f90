@@ -148,8 +148,9 @@ do i=1, max_n_nodes
 
     ! Deciding whether to stop or not
     call random_number(rand_num)
-    if(rand_num<=0.3)then
+    if(rand_num<1E-4)then
         n_nodes = i
+        exit
     endif
 enddo
 print "(A,I0)", "Done appending to llist/arrays. Number of elements: ", n_nodes
