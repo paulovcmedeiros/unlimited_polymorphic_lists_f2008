@@ -3,15 +3,15 @@
 !==========================================================================
 subroutine SPECIFIC_ARRAY_APPEND_SUBROUTINE(array, val)
 implicit none
-#       ifdef ARRAY_IS_CHAR
+#ifdef ARRAY_IS_CHAR
     character(len=:), allocatable, intent(inout) :: array(:)
     character(len=:), allocatable :: aux_array(:)
     character(len=*), intent(in) :: val
-#       else
+#else
     ARRAY_TYPE, dimension(:), allocatable, intent(inout) :: array
     ARRAY_TYPE, dimension(:), allocatable :: aux_array
     ARRAY_TYPE, intent(in) :: val
-#       endif
+#endif
 integer :: orig_size, new_size
 
     if(allocated(array))then
