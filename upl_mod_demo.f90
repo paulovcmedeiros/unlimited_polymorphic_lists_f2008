@@ -11,10 +11,6 @@ type(doubly_linked_list) :: list
 type(indexed_doubly_linked_list) :: indexed_list
 class(*), pointer :: ptr=>null()
 class(doubly_linked_list_node), pointer :: ptr_node=>null()
-! nagfor fails if using the unlimited polymorphic pointer above to access
-! individual elements of "char_array" (below). I'll use char_ptr untill
-! this is resolved.
-character(:), pointer :: char_ptr
 integer :: i, j, n_nodes
 integer, dimension(:), allocatable, target :: int_array
 logical, dimension(:), allocatable, target :: logical_array
@@ -241,7 +237,7 @@ print "(A,f0.3,A)", &
 
 call cpu_time(t_start)
 do i=1, list%len
-    char_ptr => char_array(i)
+    ptr => char_array(i)
 enddo
 call cpu_time(t_end)
 print "(A,f0.3,A)", &
